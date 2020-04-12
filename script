@@ -1,0 +1,45 @@
+#Required packages.
+library(tidyverse)
+library(rvest)
+library(ggwordcloud)
+library(tm)
+library(stringr)
+
+#Text scraping from ABC website.
+
+url <- "https://www.abc.es/opinion/abci-abc-trampa-sanchez-oposicion-202004112336_noticia.html"
+parrafo1 <- read_html(url) %>% 
+          html_node('span.cuerpo-texto p:nth-child(2)') %>% 
+          html_text()
+
+parrafo2 <- read_html(url) %>% 
+            html_node('span.cuerpo-texto p:nth-child(3)') %>% 
+            html_text()
+
+texto <- paste(parrafo1, parrafo2)
+
+#Removing stopwords (it could be improved by adding better stopwords manually).
+texto <-  iconv(texto, "utf-8")
+textocorpus <- Corpus(VectorSource(texto))
+texto <- tm_map(textocorpus, removeWords, stopwords('spanish'))
+
+palabras <- as.data.frame(strsplit(texto[["1"]][["content"]], " "))
+names(palabras)[1] <- "palabra"
+
+#Filtering rows without relevant words.
+palabras <- palabras %>% 
+                  filter(nchar(as.character(palabra)) > 0)
+
+#Add a count of ocurrences for each word. 
+palabras <- palabras %>% 
+  group_by(palabra) %>% 
+  summarise(n = n()) %>% 
+  arrange(-n)
+
+#Visualize the word cloud.
+set.seed(42)
+ggplot(palabras, aes(label = palabra, size = n)) +
+  scale_size_area(max_size = 20) +
+  geom_text_wordcloud_area() +
+  theme_minimal()
+
