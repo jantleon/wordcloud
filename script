@@ -1,3 +1,5 @@
+##How to create a wordcloud from an online Spanish newspaper.
+
 #Required packages.
 library(tidyverse)
 library(rvest)
