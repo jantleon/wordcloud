@@ -21,9 +21,12 @@ parrafo2 <- read_html(url) %>%
 texto <- paste(parrafo1, parrafo2)
 
 #Removing stopwords (it could be improved by adding better stopwords manually).
+
 texto <-  iconv(texto, "utf-8")
-textocorpus <- Corpus(VectorSource(texto))
-texto <- tm_map(textocorpus, removeWords, stopwords('spanish'))
+texto <- tolower(texto)
+texto <- Corpus(VectorSource(texto))
+texto <- tm_map(texto, removePunctuation)
+texto <- tm_map(texto, removeWords, stopwords('spanish'))
 
 palabras <- as.data.frame(strsplit(texto[["1"]][["content"]], " "))
 names(palabras)[1] <- "palabra"
